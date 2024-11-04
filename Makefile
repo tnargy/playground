@@ -12,11 +12,5 @@ client: client.o
 client.o: client.c
 	gcc -c client.c -o client.o
 
-hello: hello.o
-	gcc hello.o -o hello
-
-hello.o: hello.c
-	gcc -c hello.c -o hello.o
-
 clean: 
-	rm -f *.o hello server client
+	rm -f *.o server client
