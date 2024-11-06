@@ -11,6 +11,7 @@ pub fn main() !void {
     try posix.bind(lsnr, &addr.any, addr.getOsSockLen());
     try posix.listen(lsnr, 128);
 
+    var buf: [128]u8 = undefined;
     while (true) {
         var client_address: net.Address = undefined;
         var client_address_len: posix.socklen_t = @sizeOf(net.Address);
@@ -22,8 +23,17 @@ pub fn main() !void {
         defer posix.close(socket);
 
         std.debug.print("{} connected\n", .{client_address});
+        
+        const read = posix.read(socket, &buf) catch |err| {
+            std.debug.print("error reading: {}\n", .{err});
+            continue;
+        };
 
-        write(socket, "Hello (and goodbye)") catch |err| {
+        if (read == 0) {
+            continue;
+        }
+
+        write(socket, buf[0..read]) catch |err| {
             std.debug.print("error writing: {}\n", .{err});
         };
     }
