@@ -11,7 +11,7 @@ pub fn main() !void {
     try posix.bind(lsnr, &addr.any, addr.getOsSockLen());
     try posix.listen(lsnr, 128);
 
-    var buf: [128]u8 = undefined;
+    var buf: [1024]u8 = undefined;
     while (true) {
         var client_address: net.Address = undefined;
         var client_address_len: posix.socklen_t = @sizeOf(net.Address);
@@ -23,33 +23,17 @@ pub fn main() !void {
         defer posix.close(socket);
 
         std.debug.print("{} connected\n", .{client_address});
-        
-        const timeout = posix.timeval{.tv_sec = 2, .tv_usec = 500_000};
+
+        const timeout = posix.timeval{ .tv_sec = 5, .tv_usec = 0 };
         try posix.setsockopt(socket, posix.SOL.SOCKET, posix.SO.RCVTIMEO, &std.mem.toBytes(timeout));
         try posix.setsockopt(socket, posix.SOL.SOCKET, posix.SO.SNDTIMEO, &std.mem.toBytes(timeout));
 
-        const read = posix.read(socket, &buf) catch |err| {
-            std.debug.print("error reading: {}\n", .{err});
-            continue;
-        };
+        const stream = std.net.Stream{ .handle = socket };
 
+        const read = try stream.read(&buf);
         if (read == 0) {
             continue;
         }
-
-        write(socket, buf[0..read]) catch |err| {
-            std.debug.print("error writing: {}\n", .{err});
-        };
-    }
-}
-
-fn write(socket: posix.socket_t, msg: []const u8) !void {
-    var pos: usize = 0;
-    while (pos < msg.len) {
-        const written = try posix.write(socket, msg[pos..]);
-        if (written == 0) {
-            return error.Closed;
-        }
-        pos += written;
+        try stream.writeAll(buf[0..read]);
     }
 }
