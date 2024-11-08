@@ -37,7 +37,7 @@ const Client = struct {
 
     fn handle(self: Client) void {
         self._handle() catch |err| switch (err) {
-            error.Closed => {},
+            error.WouldBlock => {},
             else => std.debug.print("[{any}] client handle error: {}\n", .{self.address, err}),
         };
     }
