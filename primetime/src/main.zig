@@ -25,14 +25,18 @@ pub fn main() !void {
 
         std.debug.print("{} connected\n", .{client_address});
 
-        const timeout = posix.timeval{ .sec = 5, .usec = 0 };
+        const timeout = posix.timeval{ .tv_sec = 5, .tv_usec = 0 };
         try posix.setsockopt(socket, posix.SOL.SOCKET, posix.SO.RCVTIMEO, &std.mem.toBytes(timeout));
         try posix.setsockopt(socket, posix.SOL.SOCKET, posix.SO.SNDTIMEO, &std.mem.toBytes(timeout));
 
         const stream = std.net.Stream{ .handle = socket };
-        const read = try stream.readAll(&buf);
-        if (read == 0) break;
-
-        _ = try stream.write(buf[0..read]);
+        while (true) {
+            const read = stream.read(&buf) catch |err| {
+                std.debug.print("error read: {}\n", .{err});
+                continue;
+            };
+            _ = try stream.write(buf[0..read]);
+            if (read == 0) break;
+        }
     }
 }
