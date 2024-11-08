@@ -9,7 +9,8 @@
 			"extensions": [
 				"catppuccin.catppuccin-vsc-pack",
 				"ziglang.vscode-zig",
-				"bwork.zig-tools"
+				"bwork.zig-tools",
+				"vscodevim.vim"
 			]
 		}
 	}
