@@ -11,7 +11,6 @@ pub fn main() !void {
     try posix.bind(lsnr, &addr.any, addr.getOsSockLen());
     try posix.listen(lsnr, 128);
 
-    var buf: [1 << 10]u8 = undefined;
     std.debug.print("Server started...\n", .{});
     while (true) {
         var client_address: net.Address = undefined;
@@ -21,22 +20,28 @@ pub fn main() !void {
             std.debug.print("error accept: {}\n", .{err});
             continue;
         };
-        defer posix.close(socket);
+        const thread = try std.Thread.spawn(.{}, run, .{socket, client_address});
+        thread.detach();
+    }
+}
 
-        std.debug.print("{} connected\n", .{client_address});
+fn run(socket: posix.socket_t, address: std.net.Address) !void {
+    defer posix.close(socket);
 
-        const timeout = posix.timeval{ .tv_sec = 5, .tv_usec = 0 };
-        try posix.setsockopt(socket, posix.SOL.SOCKET, posix.SO.RCVTIMEO, &std.mem.toBytes(timeout));
-        try posix.setsockopt(socket, posix.SOL.SOCKET, posix.SO.SNDTIMEO, &std.mem.toBytes(timeout));
+    std.debug.print("{} connected\n", .{address});
 
-        const stream = std.net.Stream{ .handle = socket };
-        while (true) {
-            const read = stream.read(&buf) catch |err| {
-                std.debug.print("error read: {}\n", .{err});
-                continue;
-            };
-            _ = try stream.write(buf[0..read]);
-            if (read == 0) break;
-        }
+    const timeout = posix.timeval{ .tv_sec = 5, .tv_usec = 0 };
+    try posix.setsockopt(socket, posix.SOL.SOCKET, posix.SO.RCVTIMEO, &std.mem.toBytes(timeout));
+    try posix.setsockopt(socket, posix.SOL.SOCKET, posix.SO.SNDTIMEO, &std.mem.toBytes(timeout));
+
+    var buf: [1 << 10]u8 = undefined;
+    const stream = std.net.Stream{ .handle = socket };
+    while (true) {
+        const read = stream.read(&buf) catch |err| {
+            std.debug.print("error read: {}\n", .{err});
+            continue;
+        };
+        _ = try stream.write(buf[0..read]);
+        if (read == 0) break;
     }
 }
