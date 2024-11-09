@@ -87,7 +87,23 @@ const Server = struct {
                             break;
                         };
 
-                        std.debug.print("got: {s}\n", .{msg});
+                        const written = client.writeMessage(msg) catch {
+                            self.removeClient(i);
+                            break;
+                        };
+
+                        if (written == false) {
+                            self.client_polls[i].events = posix.POLL.OUT;
+                            break;
+                        }
+                    }
+                } else if (revents & posix.POLL.OUT == posix.POLL.OUT) {
+                    const written = client.write() catch {
+                        self.removeClient(i);
+                        continue;
+                    };
+                    if (written) {
+                        self.client_polls[i].events = posix.POLL.IN;
                     }
                 }
             }
@@ -95,28 +111,33 @@ const Server = struct {
     }
 
     fn accept(self: *Server, listener: posix.socket_t) !void {
-        while (true) {
-            var address: net.Address = undefined;
-            var address_len: posix.socklen_t = @sizeOf(net.Address);
-            const socket = posix.accept(listener, &address.any, &address_len, posix.SOCK.NONBLOCK) catch |err| switch (err) {
-                error.WouldBlock => return,
-                else => return err,
-            };
+        const available = self.client_polls.len - self.connected;
+        for (0..available) |_| {
+            while (true) {
+                var address: net.Address = undefined;
+                var address_len: posix.socklen_t = @sizeOf(net.Address);
+                const socket = posix.accept(listener, &address.any, &address_len, posix.SOCK.NONBLOCK) catch |err| switch (err) {
+                    error.WouldBlock => return,
+                    else => return err,
+                };
 
-            const client = Client.init(self.allocator, socket, address) catch |err| {
-                posix.close(socket);
-                log.err("failed to initialize client: {}", .{err});
-                return;
-            };
+                const client = Client.init(self.allocator, socket, address) catch |err| {
+                    posix.close(socket);
+                    log.err("failed to initialize client: {}", .{err});
+                    return;
+                };
 
-            const connected = self.connected;
-            self.clients[connected] = client;
-            self.client_polls[connected] = .{
-                .fd = socket,
-                .revents = 0,
-                .events = posix.POLL.IN,
-            };
-            self.connected = connected + 1;
+                const connected = self.connected;
+                self.clients[connected] = client;
+                self.client_polls[connected] = .{
+                    .fd = socket,
+                    .revents = 0,
+                    .events = posix.POLL.IN,
+                };
+                self.connected = connected + 1;
+            }
+        } else {
+            self.polls[0].events = 0;
         }
     }
 
@@ -131,6 +152,7 @@ const Server = struct {
         self.client_polls[at] = self.client_polls[last_index];
 
         self.connected = last_index;
+        self.polls[0].events = posix.POLL.IN;
     }
 };
 
@@ -139,19 +161,28 @@ const Client = struct {
     socket: posix.socket_t,
     address: std.net.Address,
 
+    to_write: []u8,
+    write_buf: []u8,
+
     fn init(allocator: Allocator, socket: posix.socket_t, address: std.net.Address) !Client {
         const reader = try Reader.init(allocator, 4096);
         errdefer reader.deinit(allocator);
+
+        const write_buf = try allocator.alloc(u8, 4096);
+        errdefer allocator.free(write_buf);
 
         return .{
             .reader = reader,
             .socket = socket,
             .address = address,
+            .to_write = &.{},
+            .write_buf = write_buf,
         };
     }
 
     fn deinit(self: *const Client, allocator: Allocator) void {
         self.reader.deinit(allocator);
+        allocator.free(self.write_buf);
     }
 
     fn readMessage(self: *Client) !?[]const u8 {
@@ -159,6 +190,46 @@ const Client = struct {
             error.WouldBlock => return null,
             else => return err,
         };
+    }
+
+    fn writeMessage(self: *Client, msg: []const u8) !bool {
+        if (self.to_write.len > 0) {
+            return error.PendingMessage;
+        }
+
+        if (msg.len + 4 > self.write_buf.len) {
+            return error.MessageTooLarge;
+        }
+
+        std.mem.writeInt(u32, self.write_buf[0..4], @intCast(msg.len), .little);
+
+        const end = msg.len + 4;
+        @memcpy(self.write_buf[4..end], msg);
+
+        self.to_write = self.write_buf[0..end];
+
+        return self.write();
+    }
+
+    fn write(self: *Client) !bool {
+        var buf = self.to_write;
+
+        defer self.to_write = buf;
+
+        while (buf.len > 0) {
+            const n = posix.write(self.socket, buf) catch |err| switch (err) {
+                error.WouldBlock => return false,
+                else => return err,                
+            };
+
+            if (n == 0) {
+                return error.Closed;
+            }
+
+            buf = buf[n..];
+        } else {
+            return true;
+        }
     }
 };
 
