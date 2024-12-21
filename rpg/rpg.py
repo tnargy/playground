@@ -12,16 +12,15 @@ class Character:
     found_lair = False
     starter_domain = True
     lightsource = 0
+    exhaustion = 0
 
     def __str__(self):
         myChar = f"Tourches: {self.lightsource}\n" \
+            f"Exhaustion: {self.exhaustion}\n" \
             f"Tension: {self.tension}\n" \
             f"Lair: {self.lair}\n" \
             f"Found Lair: {self.found_lair}"
         return myChar
-
-    def print(self):
-        print(self)
 
     def DieCheck(self, die):
         roll = dice.roll('d'+str(die))[0]
@@ -34,7 +33,7 @@ class Character:
         print("Encounter Check")
         if dice.roll('d20')[0] < 10:
             print("No Encounter")
-            return
+            return False
 
         if self.starter_domain:
             table = {
@@ -45,9 +44,9 @@ class Character:
             for key in table:
                 if result <= int(key):
                     print(f"Fighting: {table[key]}")
-                    return True
         else:
             print(f"You ran into {dice.roll('d100')}")
+        return True
 
     def TensionCheck(self):
         print("Tension Check")
@@ -80,17 +79,21 @@ class Character:
         else:
             print("You ran out of torches")
 
+    def EventCheck(self):
+        print(f"Lookup Event: {dice.roll('d100')}")
+
     def EnterRoom(self):
         self.Lights()
         # TODO: self.RollRoom()
         self.LairCheck()
         self.TensionCheck()
-        self.EncounterCheck()
-        # TODO: self.EventCheck()
+        if not self.EncounterCheck():
+            self.EventCheck()
 
 
 onyx = Character()
-onyx.lightsource = 8
-onyx.tension = 8
+onyx.lightsource = 7
+onyx.tension = 6
 onyx.lair = 8
+onyx.exhaustion = 2
 onyx.EnterRoom()
