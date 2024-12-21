@@ -1,4 +1,4 @@
-import rpg.py
+exec(open("rpg.py").read())
 
 onyx = Character()
 onyx.lightsource = 5
