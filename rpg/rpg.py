@@ -28,7 +28,7 @@ class Character:
         if roll < 3:
             if die == dice_size[-1]:
                 return [-1, "Reset die"]
-            return [advance_dice(die), "Decreased Die"]
+            return [advance_dice(die), f"Decreased Die: d{advance_dice(die)}"]
 
     def EncounterCheck(self):
         print("Encounter Check")
