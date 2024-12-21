@@ -95,7 +95,6 @@ class Character:
 onyx = Character()
 onyx.lightsource = 6
 onyx.tension = 6
-onyx.lair = 8
 onyx.exhaustion = 2
 print(f"Path: I, II, III, 2x3 room," \
       f" and IV")
