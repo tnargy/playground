@@ -10,6 +10,7 @@ class Character:
     tension = dice_size[3]
     lair = dice_size[1]
     found_lair = False
+    starter_domain = True
     lightsource = 0
 
     def __str__(self):
@@ -30,16 +31,20 @@ class Character:
         print("Encounter Check")
         if dice.roll('d20')[0] < 10:
             print("No Encounter")
-            return False
-        table = {
-            "7":"Blightfang Rats", 
-            "14":"Skeletal Horrors", 
-            "20":"Flesh Eater"}
-        result = dice.roll('d20')[0]
-        for key in table:
-            if result <= int(key):
-                print(f"Fighting: {table[key]}")
-                return True
+            return
+
+        if self.starter_domain:
+            table = {
+                "7":"Blightfang Rats", 
+                "14":"Skeletal Horrors", 
+                "20":"Flesh Eater"}
+            result = dice.roll('d20')[0]
+            for key in table:
+                if result <= int(key):
+                    print(f"Fighting: {table[key]}")
+                    return True
+        else:
+            print(f"You ran into {dice.roll('d100')}")
 
     def TensionCheck(self):
         print("Tension Check")
@@ -48,6 +53,8 @@ class Character:
         if result[0] == -1:
             self.tension = dice_size[3]
             print(f"Growing Darkness: {dice.roll('d100')}")
+        else:
+            self.tension = result[0]
         print(result[1])
 
     def LairCheck(self):
@@ -60,6 +67,8 @@ class Character:
                 print("Found Exit")
             else:
                 print("Found Lair")
+        else:
+            self.lair = result[0]
         print(result[1])
 
     def Lights(self):
