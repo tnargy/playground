@@ -16,6 +16,9 @@
 			"workbench.colorTheme": "catppuccin-mocha",
 			"workbench.iconTheme": "catppuccin-mocha"
 		}
+	},
+	"features": {
+		"ghcr.io/rocker-org/devcontainer-features/miniforge:2": {}
 	}
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
