@@ -85,15 +85,17 @@ class Character:
     def EnterRoom(self):
         self.Lights()
         # TODO: self.RollRoom()
-        self.LairCheck()
+        if not self.starter_domain:
+            self.LairCheck()
         self.TensionCheck()
         if not self.EncounterCheck():
             self.EventCheck()
 
 
 onyx = Character()
-onyx.lightsource = 7
+onyx.lightsource = 6
 onyx.tension = 6
 onyx.lair = 8
 onyx.exhaustion = 2
-onyx.EnterRoom()
+print(f"Path: I, II, III, 2x3 room," \
+      f" and IV")
