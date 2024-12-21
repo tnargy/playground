@@ -13,7 +13,8 @@
 				"vscodevim.vim",
 				"ms-python.python"
 			],
-			"workbench.colorTheme": "catppuccin.mocha"
+			"workbench.colorTheme": "catppuccin-mocha",
+			"workbench.iconTheme": "catppuccin-mocha"
 		}
 	}
 	// Features to add to the dev container. More info: https://containers.dev/features.

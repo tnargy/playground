@@ -20,6 +20,9 @@ class Character:
             f"Found Lair: {self.found_lair}"
         return myChar
 
+    def print(self):
+        print(self)
+
     def DieCheck(self, die):
         roll = dice.roll('d'+str(die))[0]
         if roll < 3:
@@ -90,3 +93,4 @@ onyx = Character()
 onyx.lightsource = 8
 onyx.tension = 8
 onyx.lair = 8
+onyx.EnterRoom()
