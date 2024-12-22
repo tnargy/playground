@@ -27,7 +27,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip3 install --user dice"
+	"postCreateCommand": "pip3 install -r rpg/requirements.txt"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
