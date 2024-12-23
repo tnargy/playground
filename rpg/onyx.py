@@ -1,3 +1,4 @@
+import dice
 from rpg import Character
 
 onyx = Character()
