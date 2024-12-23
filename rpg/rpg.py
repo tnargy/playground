@@ -1,4 +1,4 @@
-import dice
+import dice, readchar
 dice_size = [20, 12, 10, 8, 6, 4]
 
 def advance_dice(die):
@@ -31,8 +31,13 @@ class Character:
 
     def EncounterCheck(self):
         print("Encounter Check")
-        if dice.roll('d20')[0] < 10:
-            print("No Encounter")
+        room = ""
+        while room.lower() != 'y' and room.lower() != 'n':
+            room = input("Is this a room? (y/n)")
+        n = 10 if room == 'y\n' else 15
+        r=dice.roll('d20')[0]
+        if r < n:
+            print(f"No Encounter: [{r}]")
             return False
 
         if self.starter_domain:
