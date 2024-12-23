@@ -1,4 +1,4 @@
-import dice, readchar
+import dice
 dice_size = [20, 12, 10, 8, 6, 4]
 
 def advance_dice(die):
