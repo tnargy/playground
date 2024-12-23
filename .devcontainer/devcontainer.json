@@ -13,8 +13,8 @@
 				"vscodevim.vim",
 				"ms-python.python"
 			],
-			"workbench.colorTheme": "catppuccin-mocha",
-			"workbench.iconTheme": "catppuccin-mocha"
+			"workbench.colorTheme": "Catppuccin Mocha",
+			"workbench.iconTheme": "Catppuccin Mocha"
 		}
 	},
 	"features": {
