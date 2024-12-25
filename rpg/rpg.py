@@ -34,7 +34,11 @@ class Character:
         room = ""
         while room.lower() != 'y' and room.lower() != 'n':
             room = input("Is this a room? (y/n)")
-        n = 10 if room == 'y\n' else 15
+        if room == 'y\n':
+            n = 10 
+            self.Lights()
+        else:
+            n = 15
         r=dice.roll('d20')[0]
         if r < n:
             print(f"No Encounter: [{r}]")
@@ -88,7 +92,6 @@ class Character:
         print(f"Lookup Event: {dice.roll('d100')}")
 
     def EnterRoom(self):
-        self.Lights()
         # TODO: self.RollRoom()
         if not self.starter_domain:
             self.LairCheck()
