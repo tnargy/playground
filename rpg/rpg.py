@@ -34,7 +34,7 @@ class Character:
         room = ""
         while room.lower() != 'y' and room.lower() != 'n':
             room = input("Is this a room? (y/n)")
-        if room == 'y\n':
+        if room == 'y':
             n = 10 
             self.Lights()
         else:
@@ -53,6 +53,7 @@ class Character:
             for key in table:
                 if result <= int(key):
                     print(f"Fighting: {table[key]}")
+                    break
         else:
             print(f"You ran into {dice.roll('d100')}")
         return True
